@@ -22,8 +22,9 @@ import VendorsPage from '@/pages/accounting/VendorsPage';
 import ChartOfAccountsPage from '@/pages/accounting/ChartOfAccountsPage';
 import EntitySettingsPage from '@/pages/accounting/EntitySettingsPage';
 import EntityCapitalPage from '@/pages/accounting/EntityCapitalPage';
+import { TransactionEntryProvider } from '@/contexts/TransactionEntryContext';
 
-const TABS = [
+Page_UpTABS = [
   { id: 'dashboard', label: 'Overview', icon: LayoutDashboard, path: 'dashboard' },
   { id: 'chart-of-accounts', label: 'Chart of Accounts', icon: List, path: 'chart-of-accounts' },
   { id: 'bills', label: 'Bills', icon: FileText, path: 'bills', hasBadge: true },
@@ -35,7 +36,7 @@ const TABS = [
   { id: 'settings', label: 'Settings', icon: Settings, path: 'settings' },
 ];
 
-const AccountingPage = () => {
+Page_DownPage_DownPage_DownPage_DownPage_DownPage_DownAccountingPage = () => {
   const { entityId, tab } = useParams();
   const navigate = useNavigate();
   
@@ -156,7 +157,7 @@ const AccountingPage = () => {
       case 'all-transactions': return (
           <div className="p-6 bg-gray-50 min-h-full">
             <div className="max-w-[1600px] mx-auto">
-              <div className="mb-6">
+Page_DownPage_Down              <div className="mb-6">
                 <h2 className="text-xl font-bold text-gray-900">All Transactions</h2>
                 <p className="text-sm text-gray-500">Unified view of bills, payments, and journal entries.</p>
               </div>
