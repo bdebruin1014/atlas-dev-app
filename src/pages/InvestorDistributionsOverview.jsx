@@ -1,18 +1,36 @@
 import React from 'react';
 import { Helmet } from 'react-helmet';
+import { Link } from 'react-router-dom';
 import { 
   Wallet, ArrowUpRight, Filter, Download, 
   Search, MoreHorizontal, DollarSign, Calendar
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+
+// Map project names to their IDs for navigation
+const projectIdMap = {
+  'Highland Park Lofts': 1,
+  'Watson House': 1,
+  'Oslo Townhomes': 2,
+  'Cedar Mill Apartments': 3,
+  'Pine Valley Lots': 4,
+  'Riverside Commercial': 1,  // fallback for demo
+};
 
 const InvestorDistributionsOverview = () => {
   const distributions = [
-    { id: 1, investor: 'Blackstone Capital', project: 'Highland Park Lofts', amount: 450000, type: 'Quarterly Pref', date: '2025-10-15', status: 'Paid' },
-    { id: 2, investor: 'Summit Equity', project: 'Highland Park Lofts', amount: 320000, type: 'Quarterly Pref', date: '2025-10-15', status: 'Paid' },
-    { id: 3, investor: 'Dr. Sarah Jenkins', project: 'Highland Park Lofts', amount: 15000, type: 'Quarterly Pref', date: '2025-10-15', status: 'Processing' },
+    { id: 1, investor: 'Blackstone Capital', project: 'Watson House', projectId: 1, amount: 450000, type: 'Quarterly Pref', date: '2025-10-15', status: 'Paid' },
+    { id: 2, investor: 'Summit Equity', project: 'Watson House', projectId: 1, amount: 320000, type: 'Quarterly Pref', date: '2025-10-15', status: 'Paid' },
+    { id: 3, investor: 'Dr. Sarah Jenkins', project: 'Oslo Townhomes', projectId: 2, amount: 15000, type: 'Quarterly Pref', date: '2025-10-15', status: 'Processing' },
+    { id: 4, investor: 'Johnson Family Trust', project: 'Cedar Mill Apartments', projectId: 3, amount: 125000, type: 'Cash Flow', date: '2025-09-30', status: 'Paid' },
+    { id: 5, investor: 'ABC Capital Partners', project: 'Pine Valley Lots', projectId: 4, amount: 75000, type: 'Profit Share', date: '2025-09-15', status: 'Paid' },
   ];
+
+  const getProjectId = (projectName) => {
+    return projectIdMap[projectName] || 1;
+  };
 
   return (
     <>
@@ -82,12 +100,24 @@ const InvestorDistributionsOverview = () => {
                      {distributions.map(dist => (
                         <tr key={dist.id} className="hover:bg-gray-50 transition-colors">
                            <td className="px-6 py-4 font-medium text-gray-900">{dist.investor}</td>
-                           <td className="px-6 py-4 text-gray-500">{dist.project}</td>
+                           <td className="px-6 py-4">
+                              <Link 
+                                 to={`/project/${dist.projectId || getProjectId(dist.project)}`}
+                                 className="text-emerald-600 hover:text-emerald-700 hover:underline font-medium inline-flex items-center gap-1"
+                              >
+                                 {dist.project}
+                                 <ArrowUpRight className="w-3 h-3" />
+                              </Link>
+                           </td>
                            <td className="px-6 py-4 text-gray-500">{dist.type}</td>
                            <td className="px-6 py-4 text-gray-500">{dist.date}</td>
                            <td className="px-6 py-4 text-right font-bold text-gray-900">${(dist.amount).toLocaleString()}</td>
                            <td className="px-6 py-4 text-center">
-                              <Badge variant="outline" className={dist.status === 'Paid' ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-orange-50 text-orange-700 border-orange-200"}>
+                              <Badge variant="outline" className={cn(
+                                 dist.status === 'Paid' 
+                                    ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
+                                    : "bg-orange-50 text-orange-700 border-orange-200"
+                              )}>
                                  {dist.status}
                               </Badge>
                            </td>

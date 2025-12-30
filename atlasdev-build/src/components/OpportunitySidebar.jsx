@@ -2,113 +2,101 @@ import React, { useState } from 'react';
 import { NavLink, useParams, useNavigate } from 'react-router-dom';
 import { 
   ChevronLeft, ChevronDown, ChevronRight, Target,
-  FileText, Users, CheckSquare, Building2, Calculator,
-  Search, FolderOpen, Mail, Phone, Handshake, User
+  LayoutDashboard, DollarSign, Search, Calculator, FolderOpen
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
-// RESTRUCTURED OPPORTUNITY MODULES:
-// Removed: Financials, Pipeline Tracker, Legal Review, Title & Survey
-// Added: Offer (track offer to seller)
-// Communications: in-person and remote meetings
-// Email: linked to project
-// Documents: store opportunity docs
-const opportunityModules = [
+const sidebarModules = [
   {
     id: 'overview',
-    label: 'OVERVIEW',
-    defaultExpanded: true,
+    label: 'Overview',
+    icon: LayoutDashboard,
     sections: [
-      { id: 'basic-info', label: 'Basic Info', icon: FileText },
-      { id: 'property-profile', label: 'Property Profile', icon: Building2 },
-      { id: 'seller-info', label: 'Seller Info', icon: User },
-      { id: 'tasks', label: 'Tasks', icon: CheckSquare },
-    ],
+      { id: 'basic-info', label: 'Basic Info' },
+      { id: 'property-details', label: 'Property Details' },
+      { id: 'location', label: 'Location & Maps' },
+    ]
   },
   {
     id: 'analysis',
-    label: 'ANALYSIS',
-    defaultExpanded: true,
+    label: 'Analysis',
+    icon: Calculator,
     sections: [
-      { id: 'deal-analysis', label: 'Deal Analysis', icon: Calculator },
-    ],
+      { id: 'financial-analysis', label: 'Financial Analysis' },
+      { id: 'comparable-sales', label: 'Comparable Sales' },
+      { id: 'market-research', label: 'Market Research' },
+    ]
   },
   {
-    id: 'offer',
-    label: 'OFFER',
-    defaultExpanded: false,
+    id: 'offers',
+    label: 'Offer Tracking',
+    icon: DollarSign,
     sections: [
-      { id: 'offer-tracking', label: 'Offer Tracking', icon: Handshake },
-    ],
+      { id: 'offer-history', label: 'Offer History' },
+      { id: 'current-offer', label: 'Current Offer' },
+      { id: 'counter-offers', label: 'Counter Offers' },
+    ]
   },
   {
     id: 'due-diligence',
-    label: 'DUE DILIGENCE',
-    defaultExpanded: false,
+    label: 'Due Diligence',
+    icon: Search,
     sections: [
-      { id: 'checklist', label: 'DD Checklist', icon: Search },
-      { id: 'inspections', label: 'Inspections', icon: CheckSquare },
-    ],
+      { id: 'checklist', label: 'DD Checklist' },
+      { id: 'inspections', label: 'Inspections' },
+      { id: 'environmental', label: 'Environmental' },
+      { id: 'zoning', label: 'Zoning & Permits' },
+    ]
   },
   {
     id: 'documents',
-    label: 'DOCUMENTS & COMMS',
-    defaultExpanded: false,
+    label: 'Documents & Comms',
+    icon: FolderOpen,
     sections: [
-      { id: 'all-documents', label: 'Documents', icon: FolderOpen },
-      { id: 'communications', label: 'Communications', icon: Phone },
-      { id: 'email', label: 'Email', icon: Mail },
-    ],
+      { id: 'documents', label: 'Documents' },
+      { id: 'photos', label: 'Photos' },
+      { id: 'emails', label: 'Emails' },
+      { id: 'notes', label: 'Notes' },
+    ]
   },
 ];
 
-const mockOpportunityData = {
-  1: { name: 'Highland Park Mixed-Use', status: 'qualified', stage: 'Due Diligence' },
-  2: { name: 'Riverside Industrial', status: 'new', stage: 'Initial Review' },
-  3: { name: 'Downtown Office Building', status: 'offer_submitted', stage: 'Negotiation' },
-};
-
-const statusColors = {
-  new: 'bg-blue-500',
-  qualified: 'bg-emerald-500',
-  offer_submitted: 'bg-yellow-500',
-  under_contract: 'bg-purple-500',
-  closed_won: 'bg-green-500',
-  closed_lost: 'bg-red-500',
-};
-
-const statusLabels = {
-  new: 'New',
-  qualified: 'Qualified',
-  offer_submitted: 'Offer Submitted',
-  under_contract: 'Under Contract',
-  closed_won: 'Closed Won',
-  closed_lost: 'Closed Lost',
+const mockOpportunities = {
+  1: { id: 1, name: 'Riverside Commons', code: 'OPP-001', status: 'analysis', type: 'Multifamily', askingPrice: 2500000 },
+  2: { id: 2, name: 'Maple Street Lots', code: 'OPP-002', status: 'due_diligence', type: 'Land', askingPrice: 850000 },
+  3: { id: 3, name: 'Downtown Mixed Use', code: 'OPP-003', status: 'offer', type: 'Mixed Use', askingPrice: 4200000 },
 };
 
 const OpportunitySidebar = () => {
-  const { opportunityId, section, subsection } = useParams();
+  const { opportunityId, module, section } = useParams();
   const navigate = useNavigate();
+  const [expandedModules, setExpandedModules] = useState(['overview', 'analysis']);
   
-  const [expandedModules, setExpandedModules] = useState(() => {
-    const defaults = opportunityModules.filter(m => m.defaultExpanded).map(m => m.id);
-    if (section && !defaults.includes(section)) {
-      defaults.push(section);
-    }
-    return defaults;
-  });
-  
-  const opportunity = mockOpportunityData[opportunityId] || mockOpportunityData[1];
+  const opportunity = mockOpportunities[opportunityId] || mockOpportunities[1];
+  const currentModule = module || 'overview';
+  const currentSection = section || 'basic-info';
 
   const toggleModule = (moduleId) => {
     setExpandedModules(prev => 
-      prev.includes(moduleId) ? prev.filter(id => id !== moduleId) : [...prev, moduleId]
+      prev.includes(moduleId) 
+        ? prev.filter(id => id !== moduleId)
+        : [...prev, moduleId]
     );
   };
 
+  const statusColors = {
+    lead: 'bg-gray-500 text-white',
+    analysis: 'bg-blue-500 text-white',
+    offer: 'bg-purple-500 text-white',
+    due_diligence: 'bg-yellow-500 text-black',
+    under_contract: 'bg-green-500 text-white',
+    closed: 'bg-emerald-600 text-white',
+    dead: 'bg-red-500 text-white',
+  };
+
   return (
-    <div className="w-64 bg-[#1a202c] text-white flex flex-col h-full flex-shrink-0">
+    <div className="w-64 bg-[#1a202c] border-r border-gray-700 flex flex-col h-full flex-shrink-0">
       <div className="px-4 py-3 border-b border-gray-700 flex-shrink-0">
         <button 
           onClick={() => navigate('/pipeline')}
@@ -125,55 +113,58 @@ const OpportunitySidebar = () => {
             <Target className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs text-gray-400 uppercase tracking-wide">Opportunity</p>
-            <p className="font-semibold truncate">{opportunity.name}</p>
+            <p className="font-semibold text-white truncate">{opportunity.name}</p>
+            <p className="text-xs text-gray-400">{opportunity.code}</p>
           </div>
         </div>
         <div className="mt-3 flex items-center gap-2">
-          <Badge className={cn('text-xs', statusColors[opportunity.status], 'text-white')}>
-            {statusLabels[opportunity.status]}
+          <Badge className={statusColors[opportunity.status]}>
+            {opportunity.status.replace('_', ' ')}
           </Badge>
-          <span className="text-xs text-gray-400">{opportunity.stage}</span>
+          <Badge variant="outline" className="border-gray-600 text-gray-300">{opportunity.type}</Badge>
         </div>
       </div>
 
       <nav className="flex-1 overflow-y-auto py-2">
-        {opportunityModules.map((module) => {
-          const isExpanded = expandedModules.includes(module.id);
-          const isActiveModule = section === module.id;
+        {sidebarModules.map((mod) => {
+          const Icon = mod.icon;
+          const isExpanded = expandedModules.includes(mod.id);
+          const isActiveModule = currentModule === mod.id;
           
           return (
-            <div key={module.id} className="mb-1">
+            <div key={mod.id} className="mb-1">
               <button
-                onClick={() => toggleModule(module.id)}
+                onClick={() => toggleModule(mod.id)}
                 className={cn(
-                  "w-full px-4 py-2 flex items-center justify-between text-xs font-semibold tracking-wide transition-colors",
-                  isActiveModule ? "text-white" : "text-gray-400 hover:text-gray-200"
+                  "w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors",
+                  isActiveModule 
+                    ? "bg-gray-700 text-white font-medium" 
+                    : "text-gray-300 hover:bg-gray-700 hover:text-white"
                 )}
               >
-                <span>{module.label}</span>
+                <div className="flex items-center gap-3">
+                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  <span>{mod.label}</span>
+                </div>
                 {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
               </button>
 
               {isExpanded && (
-                <div className="space-y-0.5 pb-2">
-                  {module.sections.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = section === module.id && subsection === item.id;
-                    
+                <div className="ml-4 pl-4 border-l border-gray-600">
+                  {mod.sections.map((sec) => {
+                    const isActiveSection = isActiveModule && currentSection === sec.id;
                     return (
                       <NavLink
-                        key={item.id}
-                        to={`/pipeline/opportunity/${opportunityId}/${module.id}/${item.id}`}
+                        key={sec.id}
+                        to={`/pipeline/${opportunityId}/${mod.id}/${sec.id}`}
                         className={cn(
-                          "flex items-center gap-3 px-6 py-2 text-sm transition-colors",
-                          isActive 
-                            ? "bg-gray-700/50 text-white border-l-2 border-blue-500 pl-[22px]" 
-                            : "text-gray-400 hover:bg-gray-800/50 hover:text-white border-l-2 border-transparent pl-[22px]"
+                          "block px-3 py-2 text-sm transition-colors",
+                          isActiveSection
+                            ? "bg-gray-700 text-white font-medium border-l-2 border-blue-500 -ml-[1px]"
+                            : "text-gray-400 hover:text-white hover:bg-gray-700/50"
                         )}
                       >
-                        <Icon className="w-4 h-4 flex-shrink-0" />
-                        <span>{item.label}</span>
+                        {sec.label}
                       </NavLink>
                     );
                   })}
@@ -185,7 +176,7 @@ const OpportunitySidebar = () => {
       </nav>
 
       <div className="px-4 py-3 border-t border-gray-700 flex-shrink-0">
-        <p className="text-xs text-gray-500">AtlasDev v1.0</p>
+        <p className="text-xs text-gray-500">Asking: ${(opportunity.askingPrice / 1000000).toFixed(2)}M</p>
       </div>
     </div>
   );

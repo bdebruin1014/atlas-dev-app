@@ -1,132 +1,171 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Helmet } from 'react-helmet';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 
-// Layouts
+// Layout Components
 import TopNavigation from '@/components/TopNavigation';
-import ProjectLayout from '@/components/layouts/ProjectLayout';
-import OpportunityLayout from '@/components/layouts/OpportunityLayout';
-import BankAccountLayout from '@/components/layouts/BankAccountLayout';
+import ProjectSidebar from '@/components/ProjectSidebar';
+import OpportunitySidebar from '@/components/OpportunitySidebar';
+import EntityAccountingSidebar from '@/components/EntityAccountingSidebar';
 
-// Main Pages
+// Core Pages
 import HomePage from '@/pages/HomePage';
 import ProjectsListPage from '@/pages/ProjectsListPage';
-import PipelineListPage from '@/pages/PipelineListPage';
 import ProjectDetailPage from '@/pages/ProjectDetailPage';
+import PipelineListPage from '@/pages/PipelineListPage';
 import OpportunityDetailPage from '@/pages/OpportunityDetailPage';
+import CalendarPage from '@/pages/CalendarPage';
+
+// Operations Pages
+import GlobalTasksPage from '@/pages/operations/GlobalTasksPage';
+import TaskTemplatesPage from '@/pages/operations/TaskTemplatesPage';
+import MilestoneTemplatesPage from '@/pages/operations/MilestoneTemplatesPage';
+import OperationsReportsPage from '@/pages/operations/OperationsReportsPage';
+import ProductLibraryPage from '@/pages/operations/ProductLibraryPage';
+
+// Investor Pages
+import InvestorContactsPage from '@/pages/investors/InvestorContactsPage';
+import InvestmentsPage from '@/pages/investors/InvestmentsPage';
+import CapitalRaisingPage from '@/pages/investors/CapitalRaisingPage';
 
 // Accounting Pages
 import AccountingEntitiesListPage from '@/pages/accounting/AccountingEntitiesListPage';
 import EntityAccountingDashboard from '@/pages/accounting/EntityAccountingDashboard';
 import BankAccountsPage from '@/pages/accounting/BankAccountsPage';
 import BankAccountRegisterPage from '@/pages/accounting/BankAccountRegisterPage';
-import BankingPage from '@/pages/accounting/BankingPage';
 import ReconciliationPage from '@/pages/accounting/ReconciliationPage';
-import AggregatePaymentsPage from '@/pages/accounting/AggregatePaymentsPage';
-import ChartOfAccountsPage from '@/pages/accounting/ChartOfAccountsPage';
-import VendorsPage from '@/pages/accounting/VendorsPage';
+import DepositsPage from '@/pages/accounting/DepositsPage';
+import WireTrackingPage from '@/pages/accounting/WireTrackingPage';
 import BillsPage from '@/pages/accounting/BillsPage';
 import PaymentsPage from '@/pages/accounting/PaymentsPage';
-import JournalEntriesPage from '@/pages/accounting/JournalEntriesPage';
 import InvoicesPage from '@/pages/accounting/InvoicesPage';
+import JournalEntriesPage from '@/pages/accounting/JournalEntriesPage';
+import CapitalAccountsPage from '@/pages/accounting/CapitalAccountsPage';
+import DistributionsPage from '@/pages/accounting/DistributionsPage';
+import K1DocumentsPage from '@/pages/accounting/K1DocumentsPage';
 import FinancialReportsPage from '@/pages/accounting/FinancialReportsPage';
-import EntityCapitalPage from '@/pages/accounting/EntityCapitalPage';
-import ConsolidatedViewPage from '@/pages/accounting/ConsolidatedViewPage';
+import TrialBalancePage from '@/pages/accounting/TrialBalancePage';
+import ChartOfAccountsPage from '@/pages/accounting/ChartOfAccountsPage';
 
-// Investor Pages
-import InvestorsPage from '@/pages/investors/InvestorsPage';
-import CapitalCallsPage from '@/pages/investors/CapitalCallsPage';
+// Settings
+import SettingsPage from '@/pages/SettingsPage';
 
-// Operations Pages
-import GlobalTasksPage from '@/pages/operations/GlobalTasksPage';
-
-// Main App Layout Component
-const MainLayout = ({ children }) => (
-  <div className="flex flex-col h-screen bg-[#F7FAFC]">
+// Main Layout with Top Navigation
+const MainLayout = () => (
+  <div className="flex flex-col h-screen">
     <TopNavigation />
     <main className="flex-1 overflow-hidden">
-      {children}
+      <Outlet />
     </main>
+  </div>
+);
+
+// Project Layout with Dark Sidebar
+const ProjectLayout = () => (
+  <div className="flex h-full">
+    <ProjectSidebar />
+    <div className="flex-1 overflow-hidden">
+      <Outlet />
+    </div>
+  </div>
+);
+
+// Opportunity Layout with Dark Sidebar
+const OpportunityLayout = () => (
+  <div className="flex h-full">
+    <OpportunitySidebar />
+    <div className="flex-1 overflow-hidden">
+      <Outlet />
+    </div>
+  </div>
+);
+
+// Entity Accounting Layout with Dark Sidebar
+const EntityAccountingLayout = () => (
+  <div className="flex h-full">
+    <EntityAccountingSidebar />
+    <div className="flex-1 overflow-hidden">
+      <Outlet />
+    </div>
   </div>
 );
 
 function App() {
   return (
-    <BrowserRouter>
-      <Helmet>
-        <title>AtlasDev | Real Estate Development Platform</title>
-        <meta name="description" content="Comprehensive real estate development management platform" />
-      </Helmet>
-      
+    <Router>
       <Routes>
-        {/* Dashboard */}
-        <Route path="/" element={<MainLayout><HomePage /></MainLayout>} />
-        <Route path="/dashboard" element={<Navigate to="/" replace />} />
-
-        {/* Projects */}
-        <Route path="/projects" element={<MainLayout><ProjectsListPage /></MainLayout>} />
-        <Route path="/project/:projectId/*" element={<MainLayout><ProjectLayout /></MainLayout>}>
-          <Route index element={<Navigate to="overview/basic-info" replace />} />
-          <Route path=":module/:section" element={<ProjectDetailPage />} />
+        <Route element={<MainLayout />}>
+          {/* Home */}
+          <Route path="/" element={<HomePage />} />
+          
+          {/* Calendar */}
+          <Route path="/calendar" element={<CalendarPage />} />
+          
+          {/* Operations */}
+          <Route path="/operations/tasks" element={<GlobalTasksPage />} />
+          <Route path="/operations/task-templates" element={<TaskTemplatesPage />} />
+          <Route path="/operations/milestone-templates" element={<MilestoneTemplatesPage />} />
+          <Route path="/operations/reports" element={<OperationsReportsPage />} />
+          <Route path="/operations/product-library" element={<ProductLibraryPage />} />
+          
+          {/* Projects List */}
+          <Route path="/projects" element={<ProjectsListPage />} />
+          
+          {/* Project Detail with Dark Sidebar */}
+          <Route path="/project/:projectId" element={<ProjectLayout />}>
+            <Route index element={<Navigate to="overview/basic-info" replace />} />
+            <Route path=":module" element={<ProjectDetailPage />} />
+            <Route path=":module/:section" element={<ProjectDetailPage />} />
+          </Route>
+          
+          {/* Pipeline / Opportunities List */}
+          <Route path="/pipeline" element={<PipelineListPage />} />
+          
+          {/* Opportunity Detail with Dark Sidebar */}
+          <Route path="/pipeline/:opportunityId" element={<OpportunityLayout />}>
+            <Route index element={<Navigate to="overview/basic-info" replace />} />
+            <Route path=":module" element={<OpportunityDetailPage />} />
+            <Route path=":module/:section" element={<OpportunityDetailPage />} />
+          </Route>
+          
+          {/* Investors */}
+          <Route path="/investors" element={<Navigate to="/investors/contacts" replace />} />
+          <Route path="/investors/contacts" element={<InvestorContactsPage />} />
+          <Route path="/investors/investments" element={<InvestmentsPage />} />
+          <Route path="/investors/capital-raising" element={<CapitalRaisingPage />} />
+          
+          {/* Accounting - Entities List (main entry point) */}
+          <Route path="/accounting" element={<Navigate to="/accounting/entities" replace />} />
+          <Route path="/accounting/entities" element={<AccountingEntitiesListPage />} />
+          
+          {/* Entity Accounting Detail with Dark Sidebar */}
+          <Route path="/accounting/entities/:entityId" element={<EntityAccountingLayout />}>
+            <Route index element={<EntityAccountingDashboard />} />
+            <Route path="bank-accounts" element={<BankAccountsPage />} />
+            <Route path="register" element={<BankAccountRegisterPage />} />
+            <Route path="reconciliation" element={<ReconciliationPage />} />
+            <Route path="deposits" element={<DepositsPage />} />
+            <Route path="wire-tracking" element={<WireTrackingPage />} />
+            <Route path="bills" element={<BillsPage />} />
+            <Route path="payments" element={<PaymentsPage />} />
+            <Route path="invoices" element={<InvoicesPage />} />
+            <Route path="journal-entries" element={<JournalEntriesPage />} />
+            <Route path="capital" element={<CapitalAccountsPage />} />
+            <Route path="distributions" element={<DistributionsPage />} />
+            <Route path="k1-documents" element={<K1DocumentsPage />} />
+            <Route path="reports" element={<FinancialReportsPage />} />
+            <Route path="trial-balance" element={<TrialBalancePage />} />
+            <Route path="chart-of-accounts" element={<ChartOfAccountsPage />} />
+          </Route>
+          
+          {/* Settings */}
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/settings/profile" element={<SettingsPage />} />
+          
+          {/* Catch all */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
-
-        {/* Pipeline / Opportunities */}
-        <Route path="/pipeline" element={<MainLayout><PipelineListPage /></MainLayout>} />
-        <Route path="/pipeline/opportunity/:opportunityId/*" element={<MainLayout><OpportunityLayout /></MainLayout>}>
-          <Route index element={<Navigate to="overview/basic-info" replace />} />
-          <Route path=":module/:section" element={<OpportunityDetailPage />} />
-        </Route>
-
-        {/* Accounting - Entity List */}
-        <Route path="/accounting/entities" element={<MainLayout><AccountingEntitiesListPage /></MainLayout>} />
-        
-        {/* Accounting - Entity Dashboard */}
-        <Route path="/accounting/entity/:entityId" element={<MainLayout><EntityAccountingDashboard /></MainLayout>} />
-        <Route path="/accounting/entity/:entityId/chart-of-accounts" element={<MainLayout><ChartOfAccountsPage /></MainLayout>} />
-        <Route path="/accounting/entity/:entityId/capital" element={<MainLayout><EntityCapitalPage /></MainLayout>} />
-
-        {/* Accounting - Bank Account Routes (Qualia-style three-column) */}
-        <Route path="/accounting/entity/:entityId/bank/:accountId/*" element={<MainLayout><BankAccountLayout /></MainLayout>}>
-          <Route index element={<Navigate to="register" replace />} />
-          <Route path="register" element={<BankAccountRegisterPage />} />
-          <Route path="banking" element={<BankingPage />} />
-          <Route path="reconciliation" element={<ReconciliationPage />} />
-          <Route path="aggregate-payments" element={<AggregatePaymentsPage />} />
-          <Route path="reports" element={<FinancialReportsPage />} />
-          <Route path="invoices" element={<InvoicesPage />} />
-        </Route>
-
-        {/* Accounting - Global Pages */}
-        <Route path="/accounting/bank-accounts" element={<MainLayout><BankAccountsPage /></MainLayout>} />
-        <Route path="/accounting/chart-of-accounts" element={<MainLayout><ChartOfAccountsPage /></MainLayout>} />
-        <Route path="/accounting/vendors" element={<MainLayout><VendorsPage /></MainLayout>} />
-        <Route path="/accounting/bills" element={<MainLayout><BillsPage /></MainLayout>} />
-        <Route path="/accounting/payments" element={<MainLayout><PaymentsPage /></MainLayout>} />
-        <Route path="/accounting/journal-entries" element={<MainLayout><JournalEntriesPage /></MainLayout>} />
-        <Route path="/accounting/invoices" element={<MainLayout><InvoicesPage /></MainLayout>} />
-        <Route path="/accounting/reports" element={<MainLayout><FinancialReportsPage /></MainLayout>} />
-        <Route path="/accounting/consolidated" element={<MainLayout><ConsolidatedViewPage /></MainLayout>} />
-
-        {/* Investors */}
-        <Route path="/investors" element={<MainLayout><InvestorsPage /></MainLayout>} />
-        <Route path="/investors/capital-accounts" element={<MainLayout><EntityCapitalPage /></MainLayout>} />
-        <Route path="/investors/capital-calls" element={<MainLayout><CapitalCallsPage /></MainLayout>} />
-        <Route path="/investors/distributions" element={<MainLayout><CapitalCallsPage /></MainLayout>} />
-        <Route path="/investors/ownership" element={<MainLayout><ConsolidatedViewPage /></MainLayout>} />
-
-        {/* Operations */}
-        <Route path="/operations/tasks" element={<MainLayout><GlobalTasksPage /></MainLayout>} />
-        <Route path="/calendar" element={<MainLayout><GlobalTasksPage /></MainLayout>} />
-        <Route path="/contacts" element={<MainLayout><VendorsPage /></MainLayout>} />
-
-        {/* Settings */}
-        <Route path="/settings" element={<MainLayout><HomePage /></MainLayout>} />
-        <Route path="/settings/profile" element={<MainLayout><HomePage /></MainLayout>} />
-
-        {/* Catch-all redirect */}
-        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </BrowserRouter>
+    </Router>
   );
 }
 

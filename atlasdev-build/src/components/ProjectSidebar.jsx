@@ -2,149 +2,131 @@ import React, { useState } from 'react';
 import { NavLink, useParams, useNavigate } from 'react-router-dom';
 import { 
   ChevronLeft, ChevronDown, ChevronRight, Building2,
-  FileText, Users, CheckSquare, Search, Calculator,
-  TrendingUp, Calendar, DollarSign, Receipt, ClipboardList, 
-  Home, Shield, PieChart, BarChart3, Wallet, FolderOpen, 
-  Mail, MessageSquare, Landmark, Scale, Package, ClipboardCheck,
-  Handshake, FileSignature, Key, Phone, Video
+  LayoutDashboard, FileText, DollarSign, Users, HardHat, 
+  Landmark, TrendingUp, FolderOpen
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
-// RESTRUCTURED PROJECT MODULES:
-// - Warranty moved to Construction
-// - Disposition: Sales (offers), Sales Contract (signed), Closing (docs/timeline/tasks)
-// - Contracts renamed to Purchase Orders
-// - Inspections: templated checklist by project type/jurisdiction
-// - Actuals: expenses against budget
-// - Expenses: record/pay project expenses
-// - Revenue: track sales/revenue
-// - Communications: calls, meetings, notes, follow-ups
-// - Email: Outlook/Gmail integration
-const projectModules = [
+// Module definitions - Unit Inventory REMOVED from Disposition
+const sidebarModules = [
   {
     id: 'overview',
-    label: 'OVERVIEW',
-    defaultExpanded: true,
+    label: 'Overview',
+    icon: LayoutDashboard,
     sections: [
-      { id: 'basic-info', label: 'Basic Info', icon: FileText },
-      { id: 'property-profile', label: 'Property Profile', icon: Building2 },
-      { id: 'contacts', label: 'Contacts', icon: Users },
-      { id: 'tasks', label: 'Tasks', icon: CheckSquare },
-    ],
+      { id: 'basic-info', label: 'Basic Info' },
+      { id: 'property-details', label: 'Property Details' },
+      { id: 'project-settings', label: 'Project Settings' },
+    ]
   },
   {
     id: 'acquisition',
-    label: 'ACQUISITION',
-    defaultExpanded: false,
+    label: 'Acquisition',
+    icon: Landmark,
     sections: [
-      { id: 'deal-analysis', label: 'Deal Analysis', icon: Calculator },
-      { id: 'pipeline-tracker', label: 'Pipeline Tracker', icon: TrendingUp },
-      { id: 'due-diligence', label: 'Due Diligence', icon: Search },
-      { id: 'legal', label: 'Legal', icon: Scale },
-    ],
+      { id: 'purchase-contract', label: 'Purchase Contract' },
+      { id: 'due-diligence', label: 'Due Diligence' },
+      { id: 'title-survey', label: 'Title & Survey' },
+      { id: 'closing', label: 'Closing' },
+    ]
   },
   {
     id: 'construction',
-    label: 'CONSTRUCTION',
-    defaultExpanded: true,
+    label: 'Construction',
+    icon: HardHat,
     sections: [
-      { id: 'plans-permits', label: 'Plans & Permits', icon: ClipboardList },
-      { id: 'schedule', label: 'Schedule', icon: Calendar },
-      { id: 'budget', label: 'Budget', icon: DollarSign },
-      { id: 'draws', label: 'Draws', icon: Receipt },
-      { id: 'purchase-orders', label: 'Purchase Orders', icon: Package },
-      { id: 'inspections', label: 'Inspections', icon: ClipboardCheck },
-      { id: 'warranty', label: 'Warranty', icon: Shield },
-    ],
+      { id: 'budget', label: 'Budget' },
+      { id: 'timeline', label: 'Timeline' },
+      { id: 'purchase-orders', label: 'Purchase Orders' },
+      { id: 'draws', label: 'Draws' },
+      { id: 'change-orders', label: 'Change Orders' },
+      { id: 'daily-logs', label: 'Daily Logs' },
+      { id: 'inspections', label: 'Inspections' },
+      { id: 'warranty', label: 'Warranty' },
+    ]
   },
   {
     id: 'disposition',
-    label: 'DISPOSITION',
-    defaultExpanded: false,
+    label: 'Disposition',
+    icon: TrendingUp,
     sections: [
-      { id: 'sales', label: 'Sales & Offers', icon: Handshake },
-      { id: 'sales-contracts', label: 'Sales Contracts', icon: FileSignature },
-      { id: 'closing', label: 'Closing', icon: Key },
-    ],
+      { id: 'pricing', label: 'Pricing' },
+      { id: 'listings', label: 'Listings' },
+      { id: 'offers', label: 'Offers' },
+      { id: 'sales-contracts', label: 'Sales Contracts' },
+      { id: 'closings', label: 'Closings' },
+    ]
   },
   {
     id: 'finance',
-    label: 'FINANCE',
-    defaultExpanded: false,
+    label: 'Finance',
+    icon: DollarSign,
     sections: [
-      { id: 'loans', label: 'Loans', icon: Landmark },
-      { id: 'proforma', label: 'Pro Forma', icon: PieChart },
-      { id: 'actuals', label: 'Actuals vs Budget', icon: BarChart3 },
-      { id: 'expenses', label: 'Expenses', icon: Receipt },
-      { id: 'revenue', label: 'Revenue', icon: Wallet },
-    ],
+      { id: 'pro-forma', label: 'Pro Forma' },
+      { id: 'loans', label: 'Loans' },
+      { id: 'equity', label: 'Equity' },
+      { id: 'expenses', label: 'Expenses' },
+      { id: 'invoices', label: 'Invoices' },
+    ]
   },
   {
     id: 'investors',
-    label: 'INVESTORS',
-    defaultExpanded: false,
+    label: 'Investors',
+    icon: Users,
     sections: [
-      { id: 'investors-list', label: 'Investors', icon: Users },
-      { id: 'investments', label: 'Investments', icon: DollarSign },
-      { id: 'distributions', label: 'Distributions', icon: Wallet },
-    ],
+      { id: 'investor-list', label: 'Investor List' },
+      { id: 'capital-accounts', label: 'Capital Accounts' },
+      { id: 'distributions', label: 'Distributions' },
+      { id: 'k1-documents', label: 'K-1 Documents' },
+    ]
   },
   {
     id: 'documents',
-    label: 'DOCUMENTS & COMMS',
-    defaultExpanded: false,
+    label: 'Documents & Comms',
+    icon: FolderOpen,
     sections: [
-      { id: 'all-documents', label: 'Documents', icon: FolderOpen },
-      { id: 'communications', label: 'Communications', icon: Phone },
-      { id: 'email', label: 'Email', icon: Mail },
-    ],
+      { id: 'documents', label: 'Documents' },
+      { id: 'photos', label: 'Photos' },
+      { id: 'emails', label: 'Emails' },
+      { id: 'notes', label: 'Notes' },
+    ]
   },
 ];
 
-const mockProjectData = {
-  1: { name: 'Watson House', code: 'PRJ-001', status: 'construction' },
-  2: { name: 'Oslo Townhomes', code: 'PRJ-002', status: 'pre_development' },
-  3: { name: 'Cedar Mill Apartments', code: 'PRJ-003', status: 'acquisition' },
-  4: { name: 'Pine Valley Lots', code: 'PRJ-004', status: 'construction' },
-};
-
-const statusColors = {
-  acquisition: 'bg-blue-500',
-  pre_development: 'bg-purple-500',
-  construction: 'bg-yellow-500',
-  stabilized: 'bg-green-500',
-};
-
-const statusLabels = {
-  acquisition: 'Acquisition',
-  pre_development: 'Pre-Development',
-  construction: 'Construction',
-  stabilized: 'Stabilized',
+const mockProjects = {
+  1: { id: 1, name: 'Watson House', code: 'PRJ-001', entity: 'Watson House LLC', status: 'construction', type: 'Multifamily' },
+  2: { id: 2, name: 'Oslo Townhomes', code: 'PRJ-002', entity: 'Oslo Townhomes LLC', status: 'pre_development', type: 'Townhomes' },
+  3: { id: 3, name: 'Riverside Commons', code: 'PRJ-003', entity: 'Riverside LLC', status: 'acquisition', type: 'Mixed Use' },
 };
 
 const ProjectSidebar = () => {
-  const { projectId, section, subsection } = useParams();
+  const { projectId, module, section } = useParams();
   const navigate = useNavigate();
+  const [expandedModules, setExpandedModules] = useState(['overview', 'construction']);
   
-  const [expandedModules, setExpandedModules] = useState(() => {
-    const defaults = projectModules.filter(m => m.defaultExpanded).map(m => m.id);
-    if (section && !defaults.includes(section)) {
-      defaults.push(section);
-    }
-    return defaults;
-  });
-  
-  const project = mockProjectData[projectId] || mockProjectData[1];
+  const project = mockProjects[projectId] || mockProjects[1];
+  const currentModule = module || 'overview';
+  const currentSection = section || 'basic-info';
 
   const toggleModule = (moduleId) => {
     setExpandedModules(prev => 
-      prev.includes(moduleId) ? prev.filter(id => id !== moduleId) : [...prev, moduleId]
+      prev.includes(moduleId) 
+        ? prev.filter(id => id !== moduleId)
+        : [...prev, moduleId]
     );
   };
 
+  const statusColors = {
+    acquisition: 'bg-blue-500 text-white',
+    pre_development: 'bg-purple-500 text-white',
+    construction: 'bg-yellow-500 text-black',
+    stabilized: 'bg-green-500 text-white',
+    disposition: 'bg-orange-500 text-white',
+  };
+
   return (
-    <div className="w-64 bg-[#1a202c] text-white flex flex-col h-full flex-shrink-0">
+    <div className="w-64 bg-[#1a202c] border-r border-gray-700 flex flex-col h-full flex-shrink-0">
       <div className="px-4 py-3 border-b border-gray-700 flex-shrink-0">
         <button 
           onClick={() => navigate('/projects')}
@@ -161,54 +143,57 @@ const ProjectSidebar = () => {
             <Building2 className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs text-gray-400 uppercase tracking-wide">Project</p>
-            <p className="font-semibold truncate">{project.name}</p>
+            <p className="font-semibold text-white truncate">{project.name}</p>
+            <p className="text-xs text-gray-400">{project.code} • {project.entity}</p>
           </div>
         </div>
         <div className="mt-3">
-          <Badge className={cn('text-xs', statusColors[project.status], 'text-white')}>
-            {statusLabels[project.status]}
+          <Badge className={statusColors[project.status] || 'bg-gray-500 text-white'}>
+            {project.status.replace('_', ' ')}
           </Badge>
         </div>
       </div>
 
       <nav className="flex-1 overflow-y-auto py-2">
-        {projectModules.map((module) => {
-          const isExpanded = expandedModules.includes(module.id);
-          const isActiveModule = section === module.id;
+        {sidebarModules.map((mod) => {
+          const Icon = mod.icon;
+          const isExpanded = expandedModules.includes(mod.id);
+          const isActiveModule = currentModule === mod.id;
           
           return (
-            <div key={module.id} className="mb-1">
+            <div key={mod.id} className="mb-1">
               <button
-                onClick={() => toggleModule(module.id)}
+                onClick={() => toggleModule(mod.id)}
                 className={cn(
-                  "w-full px-4 py-2 flex items-center justify-between text-xs font-semibold tracking-wide transition-colors",
-                  isActiveModule ? "text-white" : "text-gray-400 hover:text-gray-200"
+                  "w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors",
+                  isActiveModule 
+                    ? "bg-gray-700 text-white font-medium" 
+                    : "text-gray-300 hover:bg-gray-700 hover:text-white"
                 )}
               >
-                <span>{module.label}</span>
+                <div className="flex items-center gap-3">
+                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  <span>{mod.label}</span>
+                </div>
                 {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
               </button>
 
               {isExpanded && (
-                <div className="space-y-0.5 pb-2">
-                  {module.sections.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = section === module.id && subsection === item.id;
-                    
+                <div className="ml-4 pl-4 border-l border-gray-600">
+                  {mod.sections.map((sec) => {
+                    const isActiveSection = isActiveModule && currentSection === sec.id;
                     return (
                       <NavLink
-                        key={item.id}
-                        to={`/project/${projectId}/${module.id}/${item.id}`}
+                        key={sec.id}
+                        to={`/project/${projectId}/${mod.id}/${sec.id}`}
                         className={cn(
-                          "flex items-center gap-3 px-6 py-2 text-sm transition-colors",
-                          isActive 
-                            ? "bg-gray-700/50 text-white border-l-2 border-emerald-500 pl-[22px]" 
-                            : "text-gray-400 hover:bg-gray-800/50 hover:text-white border-l-2 border-transparent pl-[22px]"
+                          "block px-3 py-2 text-sm transition-colors",
+                          isActiveSection
+                            ? "bg-gray-700 text-white font-medium border-l-2 border-emerald-500 -ml-[1px]"
+                            : "text-gray-400 hover:text-white hover:bg-gray-700/50"
                         )}
                       >
-                        <Icon className="w-4 h-4 flex-shrink-0" />
-                        <span>{item.label}</span>
+                        {sec.label}
                       </NavLink>
                     );
                   })}
@@ -220,7 +205,7 @@ const ProjectSidebar = () => {
       </nav>
 
       <div className="px-4 py-3 border-t border-gray-700 flex-shrink-0">
-        <p className="text-xs text-gray-500">AtlasDev v1.0</p>
+        <p className="text-xs text-gray-500">{project.type}</p>
       </div>
     </div>
   );

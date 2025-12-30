@@ -1,275 +1,213 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Helmet } from 'react-helmet';
-import { 
-  ArrowLeft, Settings, Building2, Calendar, 
-  FileText, CheckCircle2, AlertCircle, 
-  ExternalLink
-} from 'lucide-react';
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import { useToast } from '@/components/ui/use-toast';
-import CheckWriter from '@/components/accounting/CheckWriter';
-import LoadingState from '@/components/LoadingState';
-import ErrorBoundary from '@/components/ErrorBoundary';
-
-// --- Mock Data ---
-
-const ENTITY_DATA = {
-  1: {
-    id: 1,
-    name: 'AtlasDev',
-    type: 'Corporation',
-    fiscalYearEnd: 'December 31',
-    banks: [
-      { id: 1, name: 'Chase Operating', last4: '8821', balance: 245000.50, lastRecon: '2025-10-31', status: 'reconciled' },
-      { id: 2, name: 'Chase Payroll', last4: '9912', balance: 55000.00, lastRecon: '2025-10-31', status: 'reconciled' },
-      { id: 3, name: 'Construction High-Yield', last4: '1102', balance: 945000.00, lastRecon: '2025-11-15', status: 'pending' },
-    ],
-    approvals: [
-      { id: 101, type: 'Bill', vendor: 'BuildRight Construction', amount: 12500.00, date: '2025-11-25', desc: 'Materials for Project A' },
-      { id: 102, type: 'Expense', vendor: 'Sarah Jenkins', amount: 450.25, date: '2025-11-26', desc: 'Travel Reimbursement' },
-      { id: 103, type: 'Bill', vendor: 'City Planning', amount: 2500.00, date: '2025-11-24', desc: 'Permit Fees' },
-    ],
-    activity: [
-      { id: 't1', date: '2025-11-27', type: 'Deposit', desc: 'Customer Payment - Unit 404', amount: 45000.00, category: 'Sales' },
-      { id: 't2', date: '2025-11-26', type: 'Payment', desc: 'Legal Partners LLP', amount: -2500.00, category: 'Professional Fees' },
-      { id: 't3', date: '2025-11-26', type: 'Bill Payment', desc: 'Metro Electric', amount: -1200.00, category: 'Accounts Payable' },
-      { id: 't4', date: '2025-11-25', type: 'Transfer', desc: 'To Payroll Account', amount: -15000.00, category: 'Transfer' },
-      { id: 't5', date: '2025-11-24', type: 'Card Charge', desc: 'Home Depot', amount: -432.55, category: 'Supplies' },
-    ]
-  },
-  2: {
-    id: 2,
-    name: 'Sunset Development LLC',
-    type: 'LLC',
-    fiscalYearEnd: 'December 31',
-    banks: [
-      { id: 4, name: 'Wells Fargo Construction', last4: '1022', balance: 450000.00, lastRecon: '2025-11-15', status: 'reconciled' }
-    ],
-    approvals: [],
-    activity: [
-      { id: 't6', date: '2025-11-20', type: 'Payment', desc: 'Architectural Designs Inc', amount: -5000.00, category: 'Design Fees' },
-      { id: 't7', date: '2025-11-18', type: 'Deposit', desc: 'Initial Funding', amount: 500000.00, category: 'Equity' },
-    ]
-  }
-};
-
-const DEFAULT_ENTITY = {
-  name: 'Unknown Entity',
-  type: 'N/A',
-  fiscalYearEnd: 'N/A',
-  banks: [],
-  approvals: [],
-  activity: []
-};
-
-const TABS = [
-  { id: 'projects', label: 'Projects' },
-  { id: 'banking', label: 'Banking' },
-  { id: 'bills', label: 'Bills' },
-  { id: 'invoices', label: 'Invoices' },
-  { id: 'journal', label: 'Journal Entries' },
-  { id: 'vendors', label: 'Vendors' },
-  { id: 'coa', label: 'Chart of Accounts' },
-];
-
-const formatCurrency = (val) => 
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
-
-const formatDate = (dateStr) => 
-  new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+import { ArrowLeft, ChevronDown, Building2, Landmark, FileText, CreditCard, Receipt, BookOpen, Users, PieChart, Settings, DollarSign, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 const EntityAccountingDashboard = () => {
   const { entityId } = useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState('banking');
-  const [showCheckWriter, setShowCheckWriter] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [activeSection, setActiveSection] = useState('banking');
+  const [expandedGroups, setExpandedGroups] = useState(['transactions', 'reporting', 'settings']);
 
-  useEffect(() => {
-     setIsLoading(true);
-     const timer = setTimeout(() => setIsLoading(false), 500);
-     return () => clearTimeout(timer);
-  }, [entityId]);
-
-  const entity = ENTITY_DATA[entityId] || { ...DEFAULT_ENTITY, name: `Entity #${entityId}` };
-
-  const handleTabClick = (tabId) => {
-    const navRoutes = {
-      bills: `/finance/entities/${entityId}/bills`,
-      invoices: `/finance/entities/${entityId}/invoices`,
-      journal: `/finance/entities/${entityId}/journal-entries`,
-      vendors: `/finance/entities/${entityId}/vendors`,
-      coa: `/finance/entities/${entityId}/chart-of-accounts`,
-      projects: `/accounting/${entityId}/projects`
-    };
-
-    if (navRoutes[tabId]) {
-      navigate(navRoutes[tabId]);
-    } else {
-      setActiveTab(tabId);
-    }
+  const entity = {
+    id: entityId,
+    name: entityId === '1' ? 'VanRock Holdings LLC' : entityId === '2' ? 'Olive Brynn LLC' : 'AtlasDev',
+    type: 'Corporation',
+    fye: 'December 31',
   };
 
-  if (isLoading) {
-     return <LoadingState type="skeleton" />;
-  }
+  const sidebarGroups = [
+    {
+      id: 'transactions',
+      label: 'Transactions',
+      items: [
+        { id: 'banking', label: 'Banking', icon: Landmark },
+        { id: 'bills', label: 'Bills', icon: Receipt },
+        { id: 'invoices', label: 'Invoices', icon: FileText },
+        { id: 'journal', label: 'Journal Entries', icon: BookOpen },
+        { id: 'payments', label: 'Payments', icon: CreditCard },
+      ]
+    },
+    {
+      id: 'reporting',
+      label: 'Reporting',
+      items: [
+        { id: 'reports', label: 'Reports', icon: PieChart },
+        { id: 'chart-of-accounts', label: 'Chart of Accounts', icon: BookOpen },
+      ]
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
+      items: [
+        { id: 'vendors', label: 'Vendors', icon: Users },
+        { id: 'entity-settings', label: 'Entity Settings', icon: Settings },
+      ]
+    },
+  ];
+
+  const bankAccounts = [
+    { id: 1, name: 'Chase Operating', last4: '8821', balance: 245000.50, status: 'reconciled' },
+    { id: 2, name: 'Chase Payroll', last4: '9912', balance: 55000.00, status: 'reconciled' },
+    { id: 3, name: 'Construction High-Yield', last4: '1102', balance: 945000.00, status: 'pending' },
+  ];
+
+  const recentTransactions = [
+    { id: 1, date: 'Dec 15', description: 'Customer Payment - Unit 404', category: 'Sales', amount: 45000, type: 'deposit' },
+    { id: 2, date: 'Dec 14', description: 'Architectural Designs Inc', category: 'Design Fees', amount: -5000, type: 'payment' },
+    { id: 3, date: 'Dec 12', description: 'City of Greenville', category: 'Permits', amount: -2500, type: 'payment' },
+    { id: 4, date: 'Dec 10', description: 'Smith Construction Draw #4', category: 'Hard Costs', amount: -125000, type: 'payment' },
+  ];
+
+  const toggleGroup = (groupId) => {
+    setExpandedGroups(prev => 
+      prev.includes(groupId) ? prev.filter(g => g !== groupId) : [...prev, groupId]
+    );
+  };
+
+  const renderContent = () => {
+    if (activeSection === 'banking') {
+      return (
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold text-gray-900">Bank Accounts</h2>
+            <Button className="bg-[#047857] hover:bg-[#065f46] h-8 text-sm"><Plus className="w-4 h-4 mr-1" />Add Account</Button>
+          </div>
+          
+          <div className="grid grid-cols-3 gap-4 mb-8">
+            {bankAccounts.map((account) => (
+              <div key={account.id} className="bg-white border border-gray-200 rounded-lg p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Landmark className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <span className={cn(
+                    "text-xs px-2 py-1 rounded-full",
+                    account.status === 'reconciled' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                  )}>
+                    {account.status}
+                  </span>
+                </div>
+                <h3 className="font-medium text-gray-900">{account.name}</h3>
+                <p className="text-sm text-gray-500">•••• {account.last4}</p>
+                <p className="text-xs text-gray-400 mt-2">AVAILABLE BALANCE</p>
+                <p className="text-2xl font-semibold text-gray-900">${account.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-lg">
+            <div className="flex items-center justify-between px-4 py-3 border-b">
+              <h3 className="font-medium text-gray-900">Recent Banking Activity</h3>
+              <Button variant="link" className="text-[#047857] h-auto p-0">View All</Button>
+            </div>
+            <div className="divide-y">
+              {recentTransactions.map((tx) => (
+                <div key={tx.id} className="flex items-center justify-between px-4 py-3 hover:bg-gray-50">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-xs font-medium text-gray-600">
+                      {tx.date.split(' ')[0]}
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">{tx.description}</p>
+                      <p className="text-sm text-gray-500">{tx.category}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className={cn("font-medium", tx.amount > 0 ? "text-[#047857]" : "text-gray-900")}>
+                      {tx.amount > 0 ? '+' : ''}{tx.amount < 0 ? '-' : ''}${Math.abs(tx.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-xs text-gray-500 capitalize">{tx.type}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="p-6">
+        <div className="bg-white border rounded-lg p-12 text-center">
+          <p className="text-gray-500 capitalize">{activeSection.replace('-', ' ')} - Coming Soon</p>
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <ErrorBoundary>
-      <Helmet>
-        <title>{entity.name} - Accounting | AtlasDev</title>
-      </Helmet>
-
-      <div className="flex flex-col h-full w-full bg-[#F7FAFC] overflow-hidden">
-        {/* Header Section */}
-        <div className="bg-white border-b border-gray-200 px-6 py-5 shrink-0">
-          <div className="max-w-[1600px] mx-auto">
-             {/* Back & Title */}
-             <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-4">
-                   <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => navigate('/accounting')}
-                      className="text-gray-500 hover:text-gray-900 -ml-2"
-                   >
-                      <ArrowLeft className="w-4 h-4 mr-1" /> Back
-                   </Button>
-                   <div className="h-6 w-px bg-gray-200"></div>
-                   <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-700">
-                         <Building2 className="w-6 h-6" />
-                      </div>
-                      <div>
-                         <h1 className="text-xl font-bold text-gray-900 leading-none">{entity.name}</h1>
-                         <div className="flex items-center gap-3 mt-1.5">
-                            <span className="text-xs text-gray-500 font-medium">{entity.type}</span>
-                            <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                            <span className="text-xs text-gray-500 flex items-center">
-                               <Calendar className="w-3 h-3 mr-1" /> FYE: {entity.fiscalYearEnd}
-                            </span>
-                         </div>
-                      </div>
-                   </div>
+    <div className="flex h-[calc(100vh-40px)] bg-gray-50">
+      {/* Dark Sidebar */}
+      <div className="w-52 bg-[#1e2a3a] flex-shrink-0 flex flex-col">
+        <div className="p-3 border-b border-gray-700">
+          <button onClick={() => navigate('/accounting')} className="flex items-center gap-2 text-gray-400 hover:text-white text-xs mb-2">
+            <ArrowLeft className="w-3 h-3" /> Back
+          </button>
+          <h2 className="text-white font-semibold truncate">{entity.name}</h2>
+          <p className="text-gray-500 text-xs">{entity.type} • FYE: {entity.fye}</p>
+        </div>
+        
+        <nav className="flex-1 p-2 overflow-y-auto">
+          {sidebarGroups.map((group) => (
+            <div key={group.id} className="mb-2">
+              <button
+                onClick={() => toggleGroup(group.id)}
+                className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium text-gray-400 hover:text-white"
+              >
+                {group.label}
+                <ChevronDown className={cn("w-4 h-4 transition-transform", expandedGroups.includes(group.id) ? "" : "-rotate-90")} />
+              </button>
+              {expandedGroups.includes(group.id) && (
+                <div className="space-y-0.5">
+                  {group.items.map((item) => {
+                    const IconComponent = item.icon;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => setActiveSection(item.id)}
+                        className={cn(
+                          "w-full flex items-center gap-2 px-3 py-2 text-xs rounded transition-colors",
+                          activeSection === item.id 
+                            ? "bg-white/10 text-white" 
+                            : "text-gray-400 hover:text-white hover:bg-white/5"
+                        )}
+                      >
+                        <IconComponent className="w-4 h-4" />
+                        {item.label}
+                      </button>
+                    );
+                  })}
                 </div>
-                <div className="flex items-center gap-2">
-                   <Button variant="outline" size="sm" onClick={() => setShowCheckWriter(true)}>
-                      <FileText className="w-4 h-4 mr-2" /> Write Check
-                   </Button>
-                   <Button variant="outline" size="sm" onClick={() => navigate('/accounting')}>
-                      <Settings className="w-4 h-4 mr-2" /> Entity Settings
-                   </Button>
-                </div>
-             </div>
+              )}
+            </div>
+          ))}
+        </nav>
+      </div>
 
-             {/* Tabs */}
-             <div className="flex items-center gap-1 overflow-x-auto no-scrollbar -mb-5 pb-1">
-                {TABS.map(tab => (
-                   <button
-                      key={tab.id}
-                      onClick={() => handleTabClick(tab.id)}
-                      className={cn(
-                         "px-4 py-2 text-sm font-medium border-b-2 transition-all whitespace-nowrap flex items-center",
-                         activeTab === tab.id 
-                            ? "border-[#2F855A] text-[#2F855A]" 
-                            : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300",
-                         (tab.id !== 'banking') && "text-emerald-600"
-                      )}
-                   >
-                      {tab.label}
-                      {tab.id !== 'banking' && <ExternalLink className="w-3 h-3 ml-1.5 opacity-50" />}
-                   </button>
-                ))}
-             </div>
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto">
+        {/* Header */}
+        <div className="bg-white border-b px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+              <Building2 className="w-6 h-6 text-[#047857]" />
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold">{entity.name}</h1>
+              <p className="text-sm text-gray-500">{entity.type} • FYE: {entity.fye}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline"><FileText className="w-4 h-4 mr-1" />Write Check</Button>
+            <Button variant="outline"><Settings className="w-4 h-4 mr-1" />Entity Settings</Button>
           </div>
         </div>
 
-        {/* Main Content Scrollable */}
-        <div className="flex-1 overflow-y-auto p-6">
-           <div className="max-w-[1600px] mx-auto space-y-6">
-              
-              {/* BANKING TAB (Default View) */}
-              {activeTab === 'banking' && (
-                 <div className="space-y-6 animate-in fade-in duration-300">
-                    
-                    {/* Bank Accounts Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                       {entity.banks.map(bank => (
-                          <div key={bank.id} className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all cursor-pointer group">
-                             <div className="flex justify-between items-start mb-4">
-                                <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
-                                   <Building2 className="w-5 h-5" />
-                                </div>
-                                <Badge variant={bank.status === 'reconciled' ? 'outline' : 'secondary'} className={
-                                   bank.status === 'reconciled' ? "text-green-600 border-green-200 bg-green-50" : "text-amber-600 bg-amber-50"
-                                }>
-                                   {bank.status === 'reconciled' ? <CheckCircle2 className="w-3 h-3 mr-1" /> : <AlertCircle className="w-3 h-3 mr-1" />}
-                                   {bank.status}
-                                </Badge>
-                             </div>
-                             <h3 className="font-semibold text-gray-900">{bank.name}</h3>
-                             <p className="text-sm text-gray-500 mb-4">•••• {bank.last4}</p>
-                             <div className="flex items-end justify-between">
-                                <div>
-                                   <p className="text-xs text-gray-400 uppercase font-medium">Available Balance</p>
-                                   <p className="text-2xl font-bold text-gray-900 tracking-tight">{formatCurrency(bank.balance)}</p>
-                                </div>
-                             </div>
-                          </div>
-                       ))}
-                    </div>
-
-                    {/* Recent Activity */}
-                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                       <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                          <h3 className="font-bold text-gray-900">Recent Banking Activity</h3>
-                          <Button variant="ghost" size="sm" className="text-emerald-600">View All</Button>
-                       </div>
-                       <div className="divide-y divide-gray-100">
-                          {entity.activity.map(tx => (
-                             <div key={tx.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <div className="flex items-center gap-4">
-                                   <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 text-xs font-bold">
-                                      {formatDate(tx.date).split(' ')[0]}
-                                   </div>
-                                   <div>
-                                      <p className="font-medium text-gray-900">{tx.desc}</p>
-                                      <p className="text-sm text-gray-500">{tx.category}</p>
-                                   </div>
-                                </div>
-                                <div className="text-right">
-                                   <p className={cn(
-                                      "font-mono font-medium",
-                                      tx.amount > 0 ? "text-emerald-600" : "text-gray-900"
-                                   )}>
-                                      {tx.amount > 0 ? '+' : ''}{formatCurrency(tx.amount)}
-                                   </p>
-                                   <p className="text-xs text-gray-400">{tx.type}</p>
-                                </div>
-                             </div>
-                          ))}
-                          {entity.activity.length === 0 && (
-                             <div className="px-6 py-8 text-center text-gray-500">No recent activity</div>
-                          )}
-                       </div>
-                    </div>
-                 </div>
-              )}
-           </div>
-        </div>
-        
-        {/* Check Writer Modal */}
-        <CheckWriter 
-          isOpen={showCheckWriter} 
-          onClose={() => setShowCheckWriter(false)}
-          entityName={entity.name}
-        />
+        {renderContent()}
       </div>
-    </ErrorBoundary>
+    </div>
   );
 };
 

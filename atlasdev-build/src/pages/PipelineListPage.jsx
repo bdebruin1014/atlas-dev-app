@@ -1,186 +1,204 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Helmet } from 'react-helmet';
-import { 
-  Plus, Search, Target, MapPin, DollarSign, ChevronRight, Building2
-} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
+import { Plus, Search, Target, MapPin, DollarSign, Calendar, Grid, List, Kanban } from 'lucide-react';
 
 const mockOpportunities = [
-  { id: 1, name: 'Highland Park Mixed-Use', propertyType: 'Mixed-Use', status: 'qualified', stage: 'Due Diligence', address: '5800 N Figueroa St, Los Angeles, CA', askingPrice: 4200000, targetOffer: 3850000, source: 'Broker Referral', createdDate: '2023-10-24' },
-  { id: 2, name: 'Riverside Industrial', propertyType: 'Industrial', status: 'new', stage: 'Initial Review', address: '2100 Commerce Way, Riverside, CA', askingPrice: 2800000, targetOffer: 2500000, source: 'Direct Mail', createdDate: '2024-01-10' },
-  { id: 3, name: 'Downtown Office Building', propertyType: 'Office', status: 'offer_submitted', stage: 'Negotiation', address: '450 Main St, Charlotte, NC', askingPrice: 8500000, targetOffer: 7800000, source: 'Broker Referral', createdDate: '2023-11-15' },
-  { id: 4, name: 'Suburban Retail Center', propertyType: 'Retail', status: 'under_contract', stage: 'Due Diligence', address: '1200 Shopping Blvd, Greenville, SC', askingPrice: 5600000, targetOffer: 5200000, source: 'Off-Market', createdDate: '2023-12-01' },
-  { id: 5, name: 'Medical Office Complex', propertyType: 'Medical Office', status: 'new', stage: 'Initial Review', address: '300 Health Way, Spartanburg, SC', askingPrice: 3200000, targetOffer: null, source: 'Auction', createdDate: '2024-01-20' },
+  { id: 1, name: 'Riverside Commons', code: 'OPP-001', status: 'analysis', type: 'Multifamily', city: 'Aurora', state: 'CO', askingPrice: 2500000, source: 'Broker - CBRE', dateAdded: '2024-10-15' },
+  { id: 2, name: 'Maple Street Lots', code: 'OPP-002', status: 'due_diligence', type: 'Land', city: 'Boulder', state: 'CO', askingPrice: 850000, source: 'Direct', dateAdded: '2024-10-20' },
+  { id: 3, name: 'Downtown Mixed Use', code: 'OPP-003', status: 'offer', type: 'Mixed Use', city: 'Denver', state: 'CO', askingPrice: 4200000, source: 'Broker - Marcus & Millichap', dateAdded: '2024-10-25' },
+  { id: 4, name: 'Cherry Creek Townhomes', code: 'OPP-004', status: 'lead', type: 'Townhomes', city: 'Denver', state: 'CO', askingPrice: 3100000, source: 'LoopNet', dateAdded: '2024-11-01' },
+  { id: 5, name: 'Stapleton Parcel', code: 'OPP-005', status: 'dead', type: 'Land', city: 'Denver', state: 'CO', askingPrice: 1500000, source: 'Auction', dateAdded: '2024-09-15' },
 ];
-
-const statusConfig = {
-  new: { label: 'New', color: 'bg-blue-100 text-blue-800' },
-  qualified: { label: 'Qualified', color: 'bg-emerald-100 text-emerald-800' },
-  offer_submitted: { label: 'Offer Submitted', color: 'bg-yellow-100 text-yellow-800' },
-  under_contract: { label: 'Under Contract', color: 'bg-purple-100 text-purple-800' },
-  closed_won: { label: 'Closed Won', color: 'bg-green-100 text-green-800' },
-  closed_lost: { label: 'Closed Lost', color: 'bg-red-100 text-red-800' },
-};
-
-const formatCurrency = (amount) => {
-  if (!amount) return '-';
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
-};
-
-const formatDate = (dateString) => {
-  if (!dateString) return '-';
-  return new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-};
 
 const PipelineListPage = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [viewMode, setViewMode] = useState('kanban');
 
   const filteredOpportunities = mockOpportunities.filter(o => {
-    const matchesSearch = o.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = o.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         o.code.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || o.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
-  const totalValue = mockOpportunities.reduce((a, o) => a + o.askingPrice, 0);
-  const activeCount = mockOpportunities.filter(o => !['closed_won', 'closed_lost'].includes(o.status)).length;
+  const statusColors = {
+    lead: 'bg-gray-500 text-white',
+    analysis: 'bg-blue-500 text-white',
+    offer: 'bg-purple-500 text-white',
+    due_diligence: 'bg-yellow-500 text-black',
+    under_contract: 'bg-green-500 text-white',
+    closed: 'bg-emerald-600 text-white',
+    dead: 'bg-red-500 text-white',
+  };
+
+  const pipelineStages = ['lead', 'analysis', 'offer', 'due_diligence', 'under_contract'];
 
   return (
-    <>
-      <Helmet><title>Pipeline | AtlasDev</title></Helmet>
-      <div className="flex flex-col h-[calc(100vh-56px)] bg-[#F7FAFC]">
-        <div className="flex-1 overflow-y-auto p-6">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Pipeline</h1>
-              <p className="text-gray-500">Track acquisition opportunities</p>
-            </div>
-            <Button className="bg-[#2F855A] hover:bg-[#276749]">
-              <Plus className="w-4 h-4 mr-2" /> New Opportunity
-            </Button>
-          </div>
+    <div className="p-6 space-y-6 overflow-y-auto h-full bg-[#F7FAFC]">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-gray-900">Pipeline</h1>
+        <Button><Plus className="w-4 h-4 mr-2" />New Opportunity</Button>
+      </div>
 
-          {/* Summary Cards */}
-          <div className="grid grid-cols-4 gap-4 mb-6">
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-gray-500 uppercase">Total Opportunities</p>
-                <p className="text-2xl font-bold">{mockOpportunities.length}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-gray-500 uppercase">Active</p>
-                <p className="text-2xl font-bold text-blue-600">{activeCount}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-gray-500 uppercase">Total Pipeline Value</p>
-                <p className="text-2xl font-bold">{formatCurrency(totalValue)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4">
-                <p className="text-xs text-gray-500 uppercase">Under Contract</p>
-                <p className="text-2xl font-bold text-purple-600">{mockOpportunities.filter(o => o.status === 'under_contract').length}</p>
-              </CardContent>
-            </Card>
-          </div>
+      <div className="grid grid-cols-5 gap-4">
+        <Card><CardContent className="pt-4"><p className="text-sm text-gray-500">Total</p><p className="text-2xl font-bold">{mockOpportunities.filter(o => o.status !== 'dead').length}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-sm text-gray-500">In Analysis</p><p className="text-2xl font-bold text-blue-600">{mockOpportunities.filter(o => o.status === 'analysis').length}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-sm text-gray-500">Under Offer</p><p className="text-2xl font-bold text-purple-600">{mockOpportunities.filter(o => o.status === 'offer').length}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-sm text-gray-500">Due Diligence</p><p className="text-2xl font-bold text-yellow-600">{mockOpportunities.filter(o => o.status === 'due_diligence').length}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-sm text-gray-500">Pipeline Value</p><p className="text-2xl font-bold">${(mockOpportunities.filter(o => o.status !== 'dead').reduce((s, o) => s + o.askingPrice, 0) / 1000000).toFixed(1)}M</p></CardContent></Card>
+      </div>
 
-          {/* Filters */}
-          <div className="flex items-center gap-4 mb-4">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input 
-                placeholder="Search opportunities..." 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="All Statuses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="new">New</SelectItem>
-                <SelectItem value="qualified">Qualified</SelectItem>
-                <SelectItem value="offer_submitted">Offer Submitted</SelectItem>
-                <SelectItem value="under_contract">Under Contract</SelectItem>
-              </SelectContent>
-            </Select>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Input 
+              placeholder="Search opportunities..." 
+              className="pl-9 w-64" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-
-          {/* Opportunities Table */}
-          <Card>
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gray-50">
-                  <TableHead>Opportunity</TableHead>
-                  <TableHead>Property Type</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Stage</TableHead>
-                  <TableHead className="text-right">Asking Price</TableHead>
-                  <TableHead className="text-right">Target Offer</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="w-12"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredOpportunities.map(opp => (
-                  <TableRow 
-                    key={opp.id} 
-                    className="cursor-pointer hover:bg-gray-50"
-                    onClick={() => navigate(`/pipeline/opportunity/${opp.id}/overview/basic-info`)}
-                  >
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <Target className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-900">{opp.name}</p>
-                          <p className="text-xs text-gray-500">{opp.source}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{opp.propertyType}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1 text-gray-600">
-                        <MapPin className="w-3 h-3" />
-                        <span className="text-sm">{opp.address.split(',')[0]}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-gray-600">{opp.stage}</TableCell>
-                    <TableCell className="text-right font-medium">{formatCurrency(opp.askingPrice)}</TableCell>
-                    <TableCell className="text-right text-emerald-600 font-medium">{formatCurrency(opp.targetOffer)}</TableCell>
-                    <TableCell>
-                      <Badge className={statusConfig[opp.status]?.color}>
-                        {statusConfig[opp.status]?.label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <ChevronRight className="w-4 h-4 text-gray-400" />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Card>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-40"><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="lead">Lead</SelectItem>
+              <SelectItem value="analysis">Analysis</SelectItem>
+              <SelectItem value="offer">Offer</SelectItem>
+              <SelectItem value="due_diligence">Due Diligence</SelectItem>
+              <SelectItem value="under_contract">Under Contract</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant={viewMode === 'kanban' ? 'default' : 'outline'} size="icon" onClick={() => setViewMode('kanban')}><Kanban className="w-4 h-4" /></Button>
+          <Button variant={viewMode === 'grid' ? 'default' : 'outline'} size="icon" onClick={() => setViewMode('grid')}><Grid className="w-4 h-4" /></Button>
+          <Button variant={viewMode === 'list' ? 'default' : 'outline'} size="icon" onClick={() => setViewMode('list')}><List className="w-4 h-4" /></Button>
         </div>
       </div>
-    </>
+
+      {viewMode === 'kanban' ? (
+        <div className="flex gap-4 overflow-x-auto pb-4">
+          {pipelineStages.map((stage) => (
+            <div key={stage} className="flex-shrink-0 w-72">
+              <div className="bg-gray-100 rounded-lg p-3">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-medium capitalize">{stage.replace('_', ' ')}</h3>
+                  <Badge variant="outline">{filteredOpportunities.filter(o => o.status === stage).length}</Badge>
+                </div>
+                <div className="space-y-3">
+                  {filteredOpportunities.filter(o => o.status === stage).map((opp) => (
+                    <Card 
+                      key={opp.id} 
+                      className="cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => navigate(`/pipeline/${opp.id}/overview/basic-info`)}
+                    >
+                      <CardContent className="p-3">
+                        <p className="font-medium">{opp.name}</p>
+                        <p className="text-xs text-gray-500">{opp.code}</p>
+                        <div className="mt-2 flex items-center justify-between">
+                          <span className="text-sm text-gray-500">{opp.city}</span>
+                          <span className="text-sm font-medium">${(opp.askingPrice / 1000000).toFixed(2)}M</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : viewMode === 'grid' ? (
+        <div className="grid grid-cols-3 gap-6">
+          {filteredOpportunities.map((opp) => (
+            <Card 
+              key={opp.id} 
+              className="cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => navigate(`/pipeline/${opp.id}/overview/basic-info`)}
+            >
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <Target className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">{opp.name}</CardTitle>
+                      <p className="text-xs text-gray-500">{opp.code}</p>
+                    </div>
+                  </div>
+                  <Badge className={statusColors[opp.status]}>{opp.status.replace('_', ' ')}</Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <MapPin className="w-4 h-4" />
+                    <span>{opp.city}, {opp.state}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <DollarSign className="w-4 h-4" />
+                    <span>${(opp.askingPrice / 1000000).toFixed(2)}M asking</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <span className="text-xs">{opp.source}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <Card>
+          <CardContent className="p-0">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">Opportunity</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">Location</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">Type</th>
+                  <th className="text-right px-4 py-3 text-sm font-medium text-gray-500">Asking Price</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">Source</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredOpportunities.map((opp) => (
+                  <tr 
+                    key={opp.id} 
+                    className="border-t cursor-pointer hover:bg-gray-50"
+                    onClick={() => navigate(`/pipeline/${opp.id}/overview/basic-info`)}
+                  >
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <Target className="w-5 h-5 text-gray-400" />
+                        <div>
+                          <p className="font-medium">{opp.name}</p>
+                          <p className="text-xs text-gray-500">{opp.code}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm">{opp.city}, {opp.state}</td>
+                    <td className="px-4 py-3"><Badge variant="outline">{opp.type}</Badge></td>
+                    <td className="px-4 py-3 text-right font-medium">${(opp.askingPrice / 1000000).toFixed(2)}M</td>
+                    <td className="px-4 py-3 text-sm text-gray-500">{opp.source}</td>
+                    <td className="px-4 py-3"><Badge className={statusColors[opp.status]}>{opp.status.replace('_', ' ')}</Badge></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
 

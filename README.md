@@ -1,178 +1,127 @@
 # AtlasDev - Real Estate Development Platform
 
-A comprehensive platform for managing real estate development from deal sourcing through disposition, with full multi-entity accounting, investor relations, and family office capabilities.
+A comprehensive real estate development management platform for VanRock Holdings LLC.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ (or 20)
+- Node.js 18+ 
 - npm or yarn
-- Supabase account
 
 ### Installation
 
-```bash
-# Install dependencies
-npm install
+1. **Extract the files** to your project directory
 
-# Copy environment file
-cp .env.example .env
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-# Edit .env with your Supabase credentials
-# VITE_SUPABASE_URL=https://your-project.supabase.co
-# VITE_SUPABASE_ANON_KEY=your-anon-key
+3. **Start development server:**
+   ```bash
+   npm run dev
+   ```
 
-# Start development server
-npm run dev
-```
+4. **Open in browser:**
+   ```
+   http://localhost:5173
+   ```
 
-Open http://localhost:5173
+The app runs in **Demo Mode** by default, so you can explore all features without setting up Supabase.
 
-### Database Setup
-
-1. Create a new Supabase project at https://supabase.com
-2. Go to SQL Editor
-3. Run migrations in order:
-   - `supabase/migrations/001_schema.sql` - Core tables
-   - `supabase/migrations/002_accounting_module.sql` - Accounting & ownership tracking
-4. Copy your project URL and anon key to `.env`
-
-## 🏗 Features
-
-### Project Management
-- Full project lifecycle tracking
-- Budget management with hierarchical categories
-- Milestone and schedule tracking
-- Construction draw processing
-
-### Multi-Entity Accounting
-- **Ownership Hierarchy**: Track ownership through multiple entity layers
-- **Capital Accounts**: Contributions, distributions, allocations per owner
-- **Chart of Accounts**: Entity-specific GL accounts
-- **Financial Statements**: Balance sheet, income statement, cash flow
-- **K-1 Management**: Track K-1s received from passive investments
-
-### Investor Relations
-- Investor CRM with accreditation tracking
-- Capital call processing
-- Distribution management
-- Investor portal
-
-### Operations
-- Task management
-- Calendar integration
-- Contact management
+---
 
 ## 📁 Project Structure
 
 ```
 atlasdev/
+├── public/
+│   └── favicon.svg
 ├── src/
 │   ├── components/
-│   │   └── ui/           # Reusable UI components (shadcn/ui style)
-│   ├── contexts/         # React contexts (Auth, etc.)
-│   ├── lib/              # Utilities and Supabase client
-│   ├── pages/
-│   │   ├── auth/         # Login, signup, password reset
-│   │   ├── accounting/   # Entity accounting pages
-│   │   ├── finance/      # Bills, invoices, journal entries
-│   │   ├── investors/    # Investor management
-│   │   └── operations/   # Tasks, calendar
-│   ├── App.jsx           # Main app with routing
-│   └── main.jsx          # Entry point
-├── supabase/
-│   └── migrations/       # Database schemas
+│   │   ├── ui/              # shadcn/ui components
+│   │   ├── accounting/      # Accounting-specific components
+│   │   ├── TopNavigation.jsx
+│   │   ├── LoadingState.jsx
+│   │   ├── ErrorBoundary.jsx
+│   │   └── ProjectContent.jsx
+│   ├── contexts/
+│   │   └── AuthContext.jsx
+│   ├── lib/
+│   │   ├── utils.js         # Utility functions (cn, formatCurrency, etc.)
+│   │   └── supabase.js      # Supabase client
+│   ├── pages/               # All page components
+│   ├── services/            # Data services
+│   ├── App.jsx              # Main app with routing
+│   ├── main.jsx             # Entry point
+│   └── index.css            # Global styles
+├── .env                     # Environment variables
 ├── index.html
+├── package.json
 ├── vite.config.js
 ├── tailwind.config.js
-└── package.json
+└── postcss.config.js
 ```
 
-## 🔧 Tech Stack
+---
 
-- **Framework**: React 18 + Vite
-- **Styling**: Tailwind CSS
-- **Components**: shadcn/ui (Radix primitives)
-- **Database**: Supabase (PostgreSQL)
-- **Auth**: Supabase Auth
-- **State**: React Query + Context
-- **Forms**: React Hook Form + Zod
+## 🔧 Configuration
 
-## 🔐 Environment Variables
+### Environment Variables
+
+The `.env` file is pre-configured for demo mode:
+
+```env
+# Demo mode - uses mock data (no database needed)
+VITE_DEMO_MODE=true
+
+# Supabase (required when DEMO_MODE=false)
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+```
+
+### Demo Mode
+
+When `VITE_DEMO_MODE=true`:
+- Authentication accepts any email/password
+- All data is mock data (realistic but not persisted)
+- Perfect for UI testing and demos
+
+---
+
+## 📱 Features
+
+### Core Modules
+
+| Module | Status | Description |
+|--------|--------|-------------|
+| Dashboard | ✅ Ready | Portfolio overview, activity feed, quick actions |
+| Projects | ✅ Ready | Project list, detail views with tabs |
+| Entities | ✅ Ready | Entity management, ownership structure |
+| Accounting | ✅ Ready | Entity-level accounting, journal entries, reports |
+| Investors | ✅ Ready | Investor dashboard, distributions, capital calls |
+| Operations | ✅ Ready | Tasks, operations dashboard |
+| Contacts | ✅ Ready | Contact management |
+| Settings | ✅ Ready | User and system settings |
+
+### Accounting Features
+
+- Chart of Accounts
+- Journal Entries (with balanced entry validation)
+- Bills & Payments
+- Vendors
+- Bank Accounts
+- Financial Reports (Trial Balance, P&L, Balance Sheet)
+- Check Writing
+
+---
+
+## 🛠 Development
+
+### Available Scripts
 
 ```bash
-VITE_SUPABASE_URL=https://xxx.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJ...
-```
-
-## 📦 Deployment
-
-### Vercel
-```bash
-npm install -g vercel
-vercel
-```
-
-### Netlify
-```bash
-npm run build
-# Deploy dist/ folder
-```
-
-### Docker
-```dockerfile
-FROM node:20-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npm run build
-RUN npm install -g serve
-EXPOSE 3000
-CMD ["serve", "-s", "dist", "-l", "3000"]
-```
-
-### Self-Hosted (Ubuntu)
-```bash
-# Install Node.js
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt-get install -y nodejs
-
-# Build
-npm install
-npm run build
-
-# Serve with nginx or PM2
-npm install -g serve
-pm2 start "serve -s dist -l 3000" --name atlasdev
-```
-
-## 🗄 Database Schema
-
-### Core Tables
-- `entities` - Legal entities (LLCs, companies)
-- `projects` - Development projects
-- `assets` - Operating properties
-- `contacts` - CRM contacts
-- `users` - System users
-
-### Accounting Tables
-- `beneficial_owners` - Ultimate individuals/trusts
-- `ownership_interests` - Who owns what percentage
-- `entity_accounts` - Chart of accounts per entity
-- `journal_entries` - GL journal entries
-- `capital_accounts` - Partner capital tracking
-
-### Investor Tables
-- `investors` - External investors
-- `investment_vehicles` - Funds, syndications
-- `capital_calls` - Capital call management
-- `distributions` - Distribution tracking
-
-## 📝 Development
-
-```bash
-# Start dev server
+# Start development server
 npm run dev
 
 # Build for production
@@ -181,10 +130,22 @@ npm run build
 # Preview production build
 npm run preview
 
-# Lint
+# Run linter
 npm run lint
 ```
 
+### Tech Stack
+
+- **Framework:** React 18 + Vite
+- **Styling:** Tailwind CSS
+- **UI Components:** shadcn/ui
+- **State:** React Query (TanStack Query)
+- **Routing:** React Router v6
+- **Backend:** Supabase (PostgreSQL, Auth, Storage)
+- **Forms:** React Hook Form + Zod
+
+---
+
 ## 📄 License
 
-Private - VanRock Holdings LLC
+Proprietary - VanRock Holdings LLC
